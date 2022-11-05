@@ -67,6 +67,13 @@ const Commodities = () => {
     })
   }
 
+  const handleChangeProvince = (e: React.ChangeEvent<HTMLSelectElement >) => {
+    setFilter({
+      ...filter,
+      area_provinsi: e.currentTarget.value
+    })
+  }
+
   const handleSearch = () => {
     type filterKeyType = keyof FilterDto;
     // cleanup unused filter
@@ -91,6 +98,14 @@ const Commodities = () => {
           <InputGroup className="mb-3">
             <Form.Control type="text" aria-label="Search input" placeholder="Ketik untuk mencari komoditas" onChange={handleChangeSearch} />
           </InputGroup>
+          </Col>
+          <Col>
+            <Form.Select aria-label="Select Province" onChange={handleChangeProvince}>
+              <option value={""}>Pilih Provinsi</option>
+              {optionArea?.map(option => (
+                <option value={option.province}>{option.province}</option>
+              ))}
+            </Form.Select>
           </Col>
           <Col>
             <Form.Select aria-label="Select City" onChange={handleChangeCity}>
