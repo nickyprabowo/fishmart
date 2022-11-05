@@ -1,15 +1,18 @@
 import { useQuery } from "common/utility/request"
-import { Fishes } from "../entity";
 import { getCommodities } from "../api"
 
+import { Fishes } from "../entity";
+import { FilterDto } from "../dto";
+
 interface IUseCommodities {
-  successCb: (data: Fishes) => void
+  filter?: Partial<FilterDto>,
+  successCb?: (data: Fishes) => void
 }
 
-const useCommodities = (config: IUseCommodities = { successCb: () => {} }) => {
-  return useQuery(["commodities"], getCommodities, {
+const useCommodities = (config?: IUseCommodities) => {
+  return useQuery(["commodities", config?.filter], () => getCommodities(config?.filter), {
     onSuccess(data) {
-      config.successCb(data)
+      if(typeof config?.successCb !== "undefined") config.successCb(data)
     },
   })
 }

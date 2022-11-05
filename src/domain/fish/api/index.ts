@@ -1,12 +1,15 @@
 import { http } from "common/utility/http-client"
 import { Fishes, OptionArea, OptionSize } from "../entity";
+import { FilterDto } from "../dto";
 
 const ALL_COMMODITIES_API = `${process.env.REACT_APP_COMMODITY_LIST}`;
 const OPTION_SIZE_API = `${process.env.REACT_APP_COMMODITY_OPTION_SIZE}`;
 const OPTION_AREA_API = `${process.env.REACT_APP_COMMODITY_OPTION_AREA}`;
 
-export const getCommodities = async (): Promise<Fishes> => {
-    const response = await http.get(ALL_COMMODITIES_API);
+export const getCommodities = async (query?: Partial<FilterDto>): Promise<Fishes> => {
+    const paramJSON = typeof query !== "undefined" ? "?search=".concat(JSON.stringify(query)) : ""
+    const URL = `${ALL_COMMODITIES_API}${paramJSON}`
+    const response = await http.get(URL);
     return response.data
 };
 
