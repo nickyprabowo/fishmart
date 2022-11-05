@@ -8,9 +8,9 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 
-import useCommodities from "../hooks/useCommodities"/*
+import useCommodities from "../hooks/useCommodities"
 import useOptionSize from "../hooks/useOptionSize"
-import useOptionArea from "../hooks/useOptionArea" */
+/* import useOptionArea from "../hooks/useOptionArea" */
 import { Fishes } from "../entity";
 import { FilterDto } from "../dto";
 
@@ -33,8 +33,8 @@ const Commodities = () => {
     komoditas: "",
     area_kota: "",
     area_provinsi: "",
-    price: 0,
-    size: 0,
+    price: "",
+    size: "",
   })
   const [queryParams, setQueryParams] = useState()
 
@@ -43,10 +43,19 @@ const Commodities = () => {
     successCb: (data) => setFishes(data)
   })
 
+  const { data: optionSize } = useOptionSize()
+
   const handleChangeSearch = (e: React.ChangeEvent<HTMLInputElement >) => {
     setFilter({
       ...filter,
       komoditas: e.currentTarget.value
+    })
+  }
+
+  const handleChangeSize = (e: React.ChangeEvent<HTMLSelectElement >) => {
+    setFilter({
+      ...filter,
+      size: e.currentTarget.value
     })
   }
 
@@ -84,11 +93,11 @@ const Commodities = () => {
             </Form.Select>
           </Col>
           <Col>
-            <Form.Select aria-label="Select Size">
+            <Form.Select aria-label="Select Size" onChange={handleChangeSize}>
               <option value={""}>Pilih Ukuran</option>
-              <option value="1">One</option>
-              <option value="2">Two</option>
-              <option value="3">Three</option>
+              {optionSize?.map(option => (
+                <option value={option.size}>{option.size}</option>
+              ))}
             </Form.Select>
           </Col>
           <Col>
