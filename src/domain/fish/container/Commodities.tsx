@@ -10,7 +10,7 @@ import Button from 'react-bootstrap/Button';
 
 import useCommodities from "../hooks/useCommodities"
 import useOptionSize from "../hooks/useOptionSize"
-/* import useOptionArea from "../hooks/useOptionArea" */
+import useOptionArea from "../hooks/useOptionArea"
 import { Fishes } from "../entity";
 import { FilterDto } from "../dto";
 
@@ -44,6 +44,7 @@ const Commodities = () => {
   })
 
   const { data: optionSize } = useOptionSize()
+  const { data: optionArea } = useOptionArea()
 
   const handleChangeSearch = (e: React.ChangeEvent<HTMLInputElement >) => {
     setFilter({
@@ -56,6 +57,13 @@ const Commodities = () => {
     setFilter({
       ...filter,
       size: e.currentTarget.value
+    })
+  }
+
+  const handleChangeCity = (e: React.ChangeEvent<HTMLSelectElement >) => {
+    setFilter({
+      ...filter,
+      area_kota: e.currentTarget.value
     })
   }
 
@@ -85,11 +93,11 @@ const Commodities = () => {
           </InputGroup>
           </Col>
           <Col>
-            <Form.Select aria-label="Select Area">
-              <option value={""}>Pilih Area</option>
-              <option value="1">One</option>
-              <option value="2">Two</option>
-              <option value="3">Three</option>
+            <Form.Select aria-label="Select City" onChange={handleChangeCity}>
+              <option value={""}>Pilih Kota</option>
+              {optionArea?.map(option => (
+                <option value={option.city}>{option.city}</option>
+              ))}
             </Form.Select>
           </Col>
           <Col>
