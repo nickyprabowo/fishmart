@@ -22,4 +22,4 @@ export type OptionArea = Area[]
 
 export type OptionSize = Size[]
 
-export type Commodities = Fish[]
+export type Fishes = Fish[]

@@ -1,11 +1,11 @@
 import { http } from "common/utility/http-client"
-import { Commodities, OptionArea, OptionSize } from "../entity";
+import { Fishes, OptionArea, OptionSize } from "../entity";
 
 const ALL_COMMODITIES_API = `${process.env.REACT_APP_COMMODITY_LIST}`;
 const OPTION_SIZE_API = `${process.env.REACT_APP_COMMODITY_OPTION_SIZE}`;
 const OPTION_AREA_API = `${process.env.REACT_APP_COMMODITY_OPTION_AREA}`;
 
-export const getCommodities = async (): Promise<Commodities> => {
+export const getCommodities = async (): Promise<Fishes> => {
     const response = await http.get(ALL_COMMODITIES_API);
     return response.data
 };
