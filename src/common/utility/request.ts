@@ -1,3 +1,3 @@
-import { useQuery, useMutation, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useMutation, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-export { useQuery, useMutation, QueryClient, QueryClientProvider };
+export { useQuery, useInfiniteQuery, useMutation, QueryClient, QueryClientProvider };
