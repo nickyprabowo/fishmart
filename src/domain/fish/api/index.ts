@@ -1,7 +1,7 @@
 import { http } from "common/utility/http-client"
 import { isEmpty } from "common/utility/object"
 import { Fishes, OptionArea, OptionSize } from "../entity";
-import { FilterDto, PaginationDto } from "../dto";
+import { FilterDto, PaginationDto, CreateCommodityRequest, CreateCommodityResponse } from "../dto";
 
 const BASE_URL = process.env.REACT_APP_COMMODITY_API_BASE_URL
 const ALL_COMMODITIES_API = `${process.env.REACT_APP_COMMODITY_LIST}`;
@@ -30,5 +30,10 @@ export const getOptionSize = async (): Promise<OptionSize> => {
 
 export const getOptionArea = async (): Promise<OptionArea> => {
     const response = await http.get(OPTION_AREA_API);
+    return response.data
+}
+
+export const createCommodity = async (payload: CreateCommodityRequest): Promise<CreateCommodityResponse> => {
+    const response = await http.post(ALL_COMMODITIES_API,[payload]);
     return response.data
 }
