@@ -10,6 +10,8 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
   - hooks : custom hook
   - entity: define data type returned from the server
   - dto : define data type to send from our app
+  - container: component which contain business logic of the app
 - `Page` : contain all pages of our app which user interacted with
 - `Assets` : contain images, fonts, etc
 - `Common`: all shared code used throughout the app which we can specialized little further
+  - `Utility`: all functionality which commonly used in the app. I also put third party library abstraction here
