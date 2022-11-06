@@ -11,12 +11,28 @@ import Button from 'react-bootstrap/Button';
 import useCommodities from "../hooks/useCommodities"
 import useOptionSize from "../hooks/useOptionSize"
 import useOptionArea from "../hooks/useOptionArea"
-import { Fishes } from "../entity";
+import { Fish, Fishes } from "../entity";
 import { FilterDto } from "../dto";
 
 interface Columns {
   key: string,
-  value: string
+  value: keyof Fish
+}
+
+enum SortDirection {
+  asc = "asc",
+  desc = "desc"
+}
+
+interface Sort {
+  column: keyof Fish | null,
+  direction: SortDirection
+}
+
+interface Page {
+  page: number,
+  limit: number,
+  offset: number
 }
 
 const columns: Columns[] = [
@@ -36,7 +52,12 @@ const Commodities = () => {
     price: "",
     size: "",
   })
-  const [queryParams, setQueryParams] = useState()
+
+  const [queryParams, setQueryParams] = useState<Partial<FilterDto>>({})
+  const [sort, setSort] = useState<Sort>({
+    column: null,
+    direction: SortDirection.asc
+  })
 
   useCommodities({
     filter: queryParams,
@@ -77,8 +98,7 @@ const Commodities = () => {
   const handleSearch = () => {
     type filterKeyType = keyof FilterDto;
     // cleanup unused filter
-    const filterKeyArr = Object.keys(filter)
-    const cleanFilterObj = filterKeyArr.reduce((acc: any,curr: string) => {
+    const cleanFilter = Object.keys(filter).reduce((acc: any,curr: string) => {
       if(filter[curr as filterKeyType]) {
         return {
           ...acc,
@@ -87,7 +107,32 @@ const Commodities = () => {
       }
       return acc
     }, {})
-    setQueryParams(cleanFilterObj)
+    setQueryParams(cleanFilter)
+  }
+
+  const handleSortingChange = (field: keyof Fish) => {
+    const sortDirection = field === sort.column && sort.direction === SortDirection.asc ? "desc" : "asc"
+    setSort({
+      column: field,
+      direction: SortDirection[sortDirection]
+    })
+    handleSort(field,SortDirection[sortDirection])
+  }
+
+  const handleSort = (field: keyof Fish, sortDirection: SortDirection) => {
+    console.log("sort", field, sortDirection, sortDirection === SortDirection.asc)
+    if(field){
+      const sortedData = [...fishes].sort((a,b) => {
+        if (a[field] === null) return 1;
+        if (b[field] === null) return -1;
+        if (a[field] === null && b[field] === null) return 0;
+        return a[field].toString().localeCompare(b[field].toString(), "en", {
+            numeric: true
+          }) * (sortDirection === SortDirection.asc ? 1 : -1)
+      })
+      console.log(sortedData)
+      setFishes(sortedData)
+    }
   }
 
   return (
@@ -102,24 +147,24 @@ const Commodities = () => {
           <Col>
             <Form.Select aria-label="Select Province" onChange={handleChangeProvince}>
               <option value={""}>Pilih Provinsi</option>
-              {optionArea?.map(option => (
-                <option value={option.province}>{option.province}</option>
+              {optionArea?.map((option, idx) => (
+                <option key={idx} value={option.province}>{option.province}</option>
               ))}
             </Form.Select>
           </Col>
           <Col>
             <Form.Select aria-label="Select City" onChange={handleChangeCity}>
               <option value={""}>Pilih Kota</option>
-              {optionArea?.map(option => (
-                <option value={option.city}>{option.city}</option>
+              {optionArea?.map((option, idx) => (
+                <option key={idx} value={option.city}>{option.city}</option>
               ))}
             </Form.Select>
           </Col>
           <Col>
             <Form.Select aria-label="Select Size" onChange={handleChangeSize}>
               <option value={""}>Pilih Ukuran</option>
-              {optionSize?.map(option => (
-                <option value={option.size}>{option.size}</option>
+              {optionSize?.map((option, idx) => (
+                <option key={idx} value={option.size}>{option.size}</option>
               ))}
             </Form.Select>
           </Col>
@@ -132,7 +177,7 @@ const Commodities = () => {
         <thead>
           <tr>
             {columns.map(column => (
-              <th>{column.key}</th>
+              <th key={column.key} onClick={() => handleSortingChange(column.value)}>{column.key}</th>
             ))}
           </tr>
         </thead>
