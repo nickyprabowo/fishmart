@@ -1,4 +1,6 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import {useInfiniteQuery} from "@tanstack/react-query"
+import { useInView } from 'react-intersection-observer'
 
 import Table from "react-bootstrap/Table"
 import Form from 'react-bootstrap/Form';
@@ -7,12 +9,16 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
+import Navbar from 'react-bootstrap/Navbar';
 
-import useCommodities from "../hooks/useCommodities"
 import useOptionSize from "../hooks/useOptionSize"
 import useOptionArea from "../hooks/useOptionArea"
 import { Fish, Fishes } from "../entity";
-import { FilterDto } from "../dto";
+import { FilterDto, PaginationDto } from "../dto";
+
+import { getCommodities } from "../api"
+
+import "./style.scss"
 
 interface Columns {
   key: string,
@@ -37,8 +43,6 @@ interface Page {
 
 const columns: Columns[] = [
   {key: "Komoditas", value: "komoditas"},
-  {key: "Provinsi", value: "area_provinsi"},
-  {key: "Kota", value: "area_kota"},
   {key: "Ukuran", value: "size"},
   {key: "Harga", value: "price"}
 ]
@@ -48,21 +52,50 @@ const Commodities = () => {
   const [filter, setFilter] = useState<FilterDto>({
     komoditas: "",
     area_kota: "",
-    area_provinsi: "",
     price: "",
     size: "",
   })
-
+  const [page, setPage] = useState<Page>({
+    page: 1,
+    limit: 20,
+    offset: 0
+  })
   const [queryParams, setQueryParams] = useState<Partial<FilterDto>>({})
   const [sort, setSort] = useState<Sort>({
     column: null,
     direction: SortDirection.asc
   })
+  const { ref, inView } = useInView()
+  const [hasMore, setHasMore] = useState<boolean>(true)
 
-  useCommodities({
-    filter: queryParams,
-    successCb: (data) => setFishes(data)
-  })
+  const pagination: PaginationDto = {
+    limit: page.limit.toString(),
+    offset: ((page.page - 1) * page.limit).toString(),
+  }
+
+  const {
+    hasNextPage,
+    isFetching,
+  } = useInfiniteQuery(
+    ["commodities", pagination, queryParams],
+    () => getCommodities(pagination, queryParams),
+    {
+      getNextPageParam: () => {
+        return hasMore ? pagination : undefined
+      },
+      onSuccess(data) {
+        data.pages.map(fishes => {
+          if(fishes.length === 0) setHasMore(false)
+          return setFishes((prevFishes) => (
+            [
+              ...prevFishes,
+              ...fishes
+            ]
+          ))
+        })
+      },
+    }
+  )
 
   const { data: optionSize } = useOptionSize()
   const { data: optionArea } = useOptionArea()
@@ -70,7 +103,7 @@ const Commodities = () => {
   const handleChangeSearch = (e: React.ChangeEvent<HTMLInputElement >) => {
     setFilter({
       ...filter,
-      komoditas: e.currentTarget.value
+      komoditas: e.currentTarget.value.toUpperCase()
     })
   }
 
@@ -88,13 +121,6 @@ const Commodities = () => {
     })
   }
 
-  const handleChangeProvince = (e: React.ChangeEvent<HTMLSelectElement >) => {
-    setFilter({
-      ...filter,
-      area_provinsi: e.currentTarget.value
-    })
-  }
-
   const handleSearch = () => {
     type filterKeyType = keyof FilterDto;
     // cleanup unused filter
@@ -107,6 +133,13 @@ const Commodities = () => {
       }
       return acc
     }, {})
+    setPage({
+      page: 1,
+      limit: 20,
+      offset: 0
+    })
+    setFishes([])
+    setHasMore(true)
     setQueryParams(cleanFilter)
   }
 
@@ -120,7 +153,6 @@ const Commodities = () => {
   }
 
   const handleSort = (field: keyof Fish, sortDirection: SortDirection) => {
-    console.log("sort", field, sortDirection, sortDirection === SortDirection.asc)
     if(field){
       const sortedData = [...fishes].sort((a,b) => {
         if (a[field] === null) return 1;
@@ -130,27 +162,32 @@ const Commodities = () => {
             numeric: true
           }) * (sortDirection === SortDirection.asc ? 1 : -1)
       })
-      console.log(sortedData)
       setFishes(sortedData)
     }
   }
 
+  useEffect(() => {
+    if (inView) {
+      if (hasMore){
+        setPage((prevData) => ({
+          ...prevData,
+          page: prevData.page + 1,
+          limit: 20
+        }));
+      }
+    }
+  }, [inView, hasMore])
+
   return (
     <>
-      <Container>
+      <Navbar sticky="top" bg="light" expand="lg">
+      <Navbar.Brand href="#">FISHMART</Navbar.Brand>
+      <Container >
         <Row>
           <Col>
           <InputGroup className="mb-3">
             <Form.Control type="text" aria-label="Search input" placeholder="Ketik untuk mencari komoditas" onChange={handleChangeSearch} />
           </InputGroup>
-          </Col>
-          <Col>
-            <Form.Select aria-label="Select Province" onChange={handleChangeProvince}>
-              <option value={""}>Pilih Provinsi</option>
-              {optionArea?.map((option, idx) => (
-                <option key={idx} value={option.province}>{option.province}</option>
-              ))}
-            </Form.Select>
           </Col>
           <Col>
             <Form.Select aria-label="Select City" onChange={handleChangeCity}>
@@ -173,26 +210,42 @@ const Commodities = () => {
           </Col>
         </Row>
       </Container>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            {columns.map(column => (
-              <th key={column.key} onClick={() => handleSortingChange(column.value)}>{column.key}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {fishes?.map(fish => (
-            <tr key={fish.uuid}>
-              <td>{fish.komoditas}</td>
-              <td>{fish.area_provinsi}</td>
-              <td>{fish.area_kota}</td>
-              <td>{fish.size}</td>
-              <td>{fish.price}</td>
+      </Navbar>
+      <Container>
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              {columns.map(column => (
+                <th key={column.key} onClick={() => handleSortingChange(column.value)}>{column.key}</th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {fishes?.map(fish => (
+              <tr key={fish.uuid}>
+                <td>
+                  <h3>{fish.komoditas}</h3>
+                  <p>{fish.area_provinsi}</p>
+                  <p>{fish.area_kota}</p>
+                </td>
+                <td>{fish.size}</td>
+                <td>{fish.price}</td>
+              </tr>
+            ))}
+            {fishes.length > 0 && (
+              <tr ref={ref} className="loadMore">
+                <td colSpan={3}>
+                  {isFetching
+                  ? 'Loading more...'
+                  : hasNextPage
+                  ? 'Load Newer'
+                  : 'Nothing more to load'}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </Container>
     </>
   );
 }
