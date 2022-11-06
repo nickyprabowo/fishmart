@@ -12,6 +12,8 @@ import Button from 'react-bootstrap/Button';
 import Navbar from 'react-bootstrap/Navbar';
 import Stack from 'react-bootstrap/Stack';
 
+import AddCommodities from "./AddCommodity";
+
 import useOptionSize from "../hooks/useOptionSize"
 import useOptionArea from "../hooks/useOptionArea"
 import { Fish, Fishes } from "../entity";
@@ -50,6 +52,7 @@ const columns: Columns[] = [
 ]
 
 const Commodities = () => {
+  const [showModal, setShowModal] = useState(false);
   const [fishes, setFishes] = useState<Fishes>([])
   const [filter, setFilter] = useState<FilterDto>({
     komoditas: "",
@@ -101,6 +104,10 @@ const Commodities = () => {
 
   const { data: optionSize } = useOptionSize()
   const { data: optionArea } = useOptionArea()
+
+  const handleCloseModal = () => setShowModal(false);
+
+  const handleShowModal = () => setShowModal(true);
 
   const handleChangeSearch = (e: React.ChangeEvent<HTMLInputElement >) => {
     setFilter({
@@ -185,7 +192,7 @@ const Commodities = () => {
       <Navbar bg="light" expand="xs">
         <Container>
           <Navbar.Brand href="#">FISHMART</Navbar.Brand>
-          <Button variant="outline-success">Search</Button>
+          <Button variant="outline-success" onClick={handleShowModal}>+ Buat Komoditi</Button>
         </Container>
       </Navbar>
       <Stack gap={3} className="content-wrapper">
@@ -254,6 +261,8 @@ const Commodities = () => {
           </Table>
         </Container>
       </Stack>
+
+      <AddCommodities show={showModal} handleClose={handleCloseModal}/>
     </>
   );
 }
