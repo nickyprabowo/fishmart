@@ -1,19 +1,23 @@
 import { http } from "common/utility/http-client"
 import { isEmpty } from "common/utility/object"
 import { Fishes, OptionArea, OptionSize } from "../entity";
-import { FilterDto } from "../dto";
+import { FilterDto, PaginationDto } from "../dto";
 
 const BASE_URL = process.env.REACT_APP_COMMODITY_API_BASE_URL
 const ALL_COMMODITIES_API = `${process.env.REACT_APP_COMMODITY_LIST}`;
 const OPTION_SIZE_API = `${process.env.REACT_APP_COMMODITY_OPTION_SIZE}`;
 const OPTION_AREA_API = `${process.env.REACT_APP_COMMODITY_OPTION_AREA}`;
 
-export const getCommodities = async (query?: Partial<FilterDto>): Promise<Fishes> => {
+export const getCommodities = async (pagination: PaginationDto, query?: Partial<FilterDto>): Promise<Fishes> => {
     let url = new window.URL(ALL_COMMODITIES_API, BASE_URL)
+    let params = new URLSearchParams({
+        limit: pagination.limit,
+        offset: pagination.offset
+    });
     if(!isEmpty(query)){
-        let params = new URLSearchParams({search: JSON.stringify(query)});
-        url.search = params.toString()
+        params.append("search", JSON.stringify(query));
     }
+    url.search = params.toString()
 
     const response = await http.get(url.href);
     return response.data
