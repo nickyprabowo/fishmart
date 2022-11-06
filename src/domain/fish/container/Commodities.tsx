@@ -10,11 +10,13 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import Navbar from 'react-bootstrap/Navbar';
+import Stack from 'react-bootstrap/Stack';
 
 import useOptionSize from "../hooks/useOptionSize"
 import useOptionArea from "../hooks/useOptionArea"
 import { Fish, Fishes } from "../entity";
 import { FilterDto, PaginationDto } from "../dto";
+import { formatCurrency } from "common/utility/currency";
 
 import { getCommodities } from "../api"
 
@@ -180,72 +182,78 @@ const Commodities = () => {
 
   return (
     <>
-      <Navbar sticky="top" bg="light" expand="lg">
-      <Navbar.Brand href="#">FISHMART</Navbar.Brand>
-      <Container >
-        <Row>
-          <Col>
-          <InputGroup className="mb-3">
-            <Form.Control type="text" aria-label="Search input" placeholder="Ketik untuk mencari komoditas" onChange={handleChangeSearch} />
-          </InputGroup>
-          </Col>
-          <Col>
-            <Form.Select aria-label="Select City" onChange={handleChangeCity}>
-              <option value={""}>Pilih Kota</option>
-              {optionArea?.map((option, idx) => (
-                <option key={idx} value={option.city}>{option.city}</option>
-              ))}
-            </Form.Select>
-          </Col>
-          <Col>
-            <Form.Select aria-label="Select Size" onChange={handleChangeSize}>
-              <option value={""}>Pilih Ukuran</option>
-              {optionSize?.map((option, idx) => (
-                <option key={idx} value={option.size}>{option.size}</option>
-              ))}
-            </Form.Select>
-          </Col>
-          <Col>
-            <Button variant="primary" onClick={handleSearch}>Cari</Button>
-          </Col>
-        </Row>
-      </Container>
+      <Navbar bg="light" expand="xs">
+        <Container>
+          <Navbar.Brand href="#">FISHMART</Navbar.Brand>
+          <Button variant="outline-success">Search</Button>
+        </Container>
       </Navbar>
-      <Container>
-        <Table striped bordered hover>
-          <thead>
-            <tr>
-              {columns.map(column => (
-                <th key={column.key} onClick={() => handleSortingChange(column.value)}>{column.key}</th>
+      <Stack gap={3} className="content-wrapper">
+        <div className="filter-section">
+          <Row>
+            <Col md={12}>
+              <InputGroup className="mb-3">
+                <Form.Control type="text" aria-label="Search input" placeholder="Ketik untuk mencari komoditas" onChange={handleChangeSearch} />
+              </InputGroup>
+            </Col>
+            <Col md={6}>
+              <Form.Select aria-label="Select City" onChange={handleChangeCity}>
+                <option value={""}>Pilih Kota</option>
+                {optionArea?.map((option, idx) => (
+                  <option key={idx} value={option.city}>{option.city}</option>
+                ))}
+              </Form.Select>
+            </Col>
+            <Col md={6}>
+              <Form.Select aria-label="Select Size" onChange={handleChangeSize}>
+                <option value={""}>Pilih Ukuran</option>
+                {optionSize?.map((option, idx) => (
+                  <option key={idx} value={option.size}>{option.size}</option>
+                ))}
+              </Form.Select>
+            </Col>
+            <Col md={12}>
+              <div className="d-grid gap-2 btn-submit-search">
+                <Button variant="primary" onClick={handleSearch}>Cari</Button>
+              </div>
+            </Col>
+          </Row>
+        </div>
+        <Container className="data-section">
+          <Table striped bordered hover size="sm" responsive>
+            <thead>
+              <tr>
+                {columns.map(column => (
+                  <th key={column.key} onClick={() => handleSortingChange(column.value)}>{column.key}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {fishes?.map(fish => (
+                <tr key={fish.uuid}>
+                  <td>
+                    <h5>{fish.komoditas}</h5>
+                    <p>{fish.area_kota}, {fish.area_provinsi}</p>
+                  </td>
+                  <td>{fish.size}</td>
+                  <td>{formatCurrency(fish.price)}</td>
+                </tr>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {fishes?.map(fish => (
-              <tr key={fish.uuid}>
-                <td>
-                  <h3>{fish.komoditas}</h3>
-                  <p>{fish.area_provinsi}</p>
-                  <p>{fish.area_kota}</p>
-                </td>
-                <td>{fish.size}</td>
-                <td>{fish.price}</td>
-              </tr>
-            ))}
-            {fishes.length > 0 && (
-              <tr ref={ref} className="loadMore">
-                <td colSpan={3}>
-                  {isFetching
-                  ? 'Loading more...'
-                  : hasNextPage
-                  ? 'Load Newer'
-                  : 'Nothing more to load'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </Table>
-      </Container>
+              {fishes.length > 0 && (
+                <tr ref={ref} className="loadMore">
+                  <td colSpan={3}>
+                    {isFetching
+                    ? 'Loading more...'
+                    : hasNextPage
+                    ? 'Load Newer'
+                    : 'Nothing more to load'}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        </Container>
+      </Stack>
     </>
   );
 }
